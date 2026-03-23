@@ -29,7 +29,7 @@ class Report:
     skipped_count: int = 0
 
     def calculate_summary(self):
-        self.summary = {"PASS": 0, "WARN": 0, "FAIL": 0, "INFO": 0, "SKIP": 0}
+        self.summary = {"PASS": 0, "WARN": 0, "FAIL": 0, "INFO": 0, "SKIP": 0, "SUPPRESSED": 0}
         for r in self.results:
             if r.severity in self.summary:
                 self.summary[r.severity] += 1

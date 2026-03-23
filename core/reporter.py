@@ -94,6 +94,9 @@ def print_terminal_report(report, use_color=True, quiet=False):
         c.BLUE, c.BOLD, report.summary.get("INFO", 0), c.RESET,
         c.GREY, c.BOLD, report.summary.get("SKIP", 0), c.RESET,
     ))
+    suppressed_count = report.summary.get("SUPPRESSED", 0)
+    if suppressed_count > 0:
+        print("  {}{} suppressed (see .audit-suppress){}".format(c.GREY, suppressed_count, c.RESET))
     print("")
 
     # Top issues — quick executive summary of FAILs
@@ -235,6 +238,10 @@ def _print_finding(r, c, quiet=False):
 
     if r.severity == "SKIP":
         print("  {} {}{}{} — {}".format(badge, c.GREY, r.check_id, c.RESET, r.title))
+        return
+
+    if r.severity == "SUPPRESSED":
+        # Suppressed results are hidden in terminal output by default
         return
 
     # FAIL and WARN get full detail + remediation

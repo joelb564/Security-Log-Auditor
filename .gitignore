@@ -13,6 +13,9 @@ venv/
 env/
 *.env
 
+# Suppression file (host-specific, keep .audit-suppress.example)
+.audit-suppress
+
 # Generated reports — contain host-specific data, do not commit
 log_audit_*.html
 log_audit_*.json

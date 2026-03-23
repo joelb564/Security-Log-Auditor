@@ -1,0 +1,22 @@
+# .audit-suppress — suppress known-intentional findings
+#
+# Copy this file to .audit-suppress and uncomment entries for checks
+# that are intentionally not applicable to this host.
+#
+# Format:
+#   suppress:
+#     - check_id: CHECK-ID-HERE
+#       reason: "Why this check is intentionally skipped"
+
+suppress:
+  # - check_id: LINUX-SELINUX-001
+  #   reason: "SELinux not used on this host by design — AppArmor in use"
+
+  # - check_id: LINUX-SHIPPER-003
+  #   reason: "No SIEM forwarder — using journald remote instead"
+
+  # - check_id: LINUX-NOISE-002
+  #   reason: "Broad /tmp watches are intentional for this honeypot"
+
+  # - check_id: WIN-PS-004
+  #   reason: "PowerShell v2 kept for legacy app compatibility"

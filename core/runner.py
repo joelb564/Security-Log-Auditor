@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 
 from core.result import CheckResult, Report
 from core.platform_utils import get_os, get_hostname, get_os_info, is_elevated
+from core.suppression import load_suppressions, apply_suppressions
 
 
 def run_all_checks(category_filter=None, severity_filter=None):
@@ -44,6 +45,10 @@ def run_all_checks(category_filter=None, severity_filter=None):
         is_elevated=elevated,
         results=results,
     )
+    # Apply suppressions from .audit-suppress file
+    suppressed_ids = load_suppressions()
+    apply_suppressions(report.results, suppressed_ids)
+
     report.calculate_summary()
     report.calculate_health_score()
     return report
