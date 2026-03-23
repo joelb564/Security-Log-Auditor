@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Security Log Audit Report — {{ report.hostname }}</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1a2e; color: #e0e0e0; padding: 20px; }
+  .container { max-width: 1000px; margin: 0 auto; }
+  .header { background: #16213e; padding: 24px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #0f3460; }
+  .header h1 { color: #e94560; margin-bottom: 12px; }
+  .header p { color: #a0a0a0; line-height: 1.6; }
+  .summary { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+  .summary-card { background: #16213e; padding: 16px 24px; border-radius: 8px; text-align: center; border: 1px solid #0f3460; flex: 1; min-width: 100px; }
+  .summary-card .number { font-size: 2em; font-weight: bold; }
+  .summary-card .label { font-size: 0.85em; color: #a0a0a0; }
+  .bar { display: flex; height: 24px; border-radius: 4px; overflow: hidden; margin-bottom: 20px; }
+  .bar-segment { display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.8em; font-weight: bold; }
+  .category { margin-bottom: 16px; }
+  .cat-header { background: #16213e; padding: 12px 16px; border-radius: 6px; cursor: pointer; border: 1px solid #0f3460; font-size: 1.1em; font-weight: bold; }
+  .cat-header:hover { background: #1a2744; }
+  .cat-body { padding: 8px 0; }
+  .finding { background: #16213e; margin: 8px 0; padding: 12px 16px; border-radius: 6px; border: 1px solid #0f3460; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 4px; color: #fff; font-weight: bold; font-size: 0.85em; margin-right: 8px; }
+  .badge-FAIL { background: #dc3545; }
+  .badge-WARN { background: #ffc107; color: #333; }
+  .badge-PASS { background: #28a745; }
+  .badge-INFO { background: #17a2b8; }
+  .badge-SKIP { background: #6c757d; }
+  .detail { margin: 8px 0; color: #c0c0c0; }
+  .remediation { background: #0a1628; padding: 8px 12px; border-radius: 4px; margin: 8px 0; }
+  .remediation code { color: #4fc3f7; word-break: break-all; }
+  .mitre { color: #a0a0a0; font-size: 0.85em; }
+  details { margin: 8px 0; }
+  details summary { cursor: pointer; color: #4fc3f7; }
+  details pre { background: #0a1628; padding: 12px; border-radius: 4px; overflow-x: auto; font-size: 0.85em; margin-top: 8px; white-space: pre-wrap; }
+  .coverage-matrix { background: #16213e; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #0f3460; }
+  .coverage-matrix h2 { margin-bottom: 12px; }
+  .matrix-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+  .matrix-cell { background: #0a1628; padding: 8px 12px; border-radius: 4px; }
+  .score { font-size: 3em; font-weight: bold; }
+  @media print {
+    body { background: #fff; color: #333; }
+    .header, .summary-card, .finding, .cat-header, .coverage-matrix { background: #f8f9fa; border-color: #dee2e6; }
+    .detail, .mitre, .header p { color: #666; }
+    .badge-WARN { color: #fff; }
+  }
+</style>
+<script>
+function toggleSection(el) {
+  var body = el.nextElementSibling;
+  if (body.style.display === 'none') {
+    body.style.display = 'block';
+    el.textContent = el.textContent.replace('[+]', '[-]');
+  } else {
+    body.style.display = 'none';
+    el.textContent = el.textContent.replace('[-]', '[+]');
+  }
+}
+</script>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>Security Log Audit Report</h1>
+    <p>
+      <strong>Hostname:</strong> {{ report.hostname }}<br>
+      <strong>OS:</strong> {{ report.os_info }}<br>
+      <strong>Timestamp:</strong> {{ report.timestamp }}<br>
+      <strong>Privileges:</strong> {% if report.is_elevated %}Elevated (root/admin){% else %}Not elevated — some checks skipped{% endif %}
+    </p>
+  </div>
+
+  {% set score_color = "#28a745" if report.health_score >= 80 else "#ffc107" if report.health_score >= 50 else "#dc3545" %}
+  <div class="summary">
+    <div class="summary-card">
+      <div class="number" style="color:{{ score_color }};">{{ report.health_score }}</div>
+      <div class="label">Health Score</div>
+    </div>
+    <div class="summary-card">
+      <div class="number" style="color:#dc3545;">{{ report.summary.get('FAIL', 0) }}</div>
+      <div class="label">FAIL</div>
+    </div>
+    <div class="summary-card">
+      <div class="number" style="color:#ffc107;">{{ report.summary.get('WARN', 0) }}</div>
+      <div class="label">WARN</div>
+    </div>
+    <div class="summary-card">
+      <div class="number" style="color:#28a745;">{{ report.summary.get('PASS', 0) }}</div>
+      <div class="label">PASS</div>
+    </div>
+    <div class="summary-card">
+      <div class="number" style="color:#17a2b8;">{{ report.summary.get('INFO', 0) }}</div>
+      <div class="label">INFO</div>
+    </div>
+    <div class="summary-card">
+      <div class="number" style="color:#6c757d;">{{ report.summary.get('SKIP', 0) }}</div>
+      <div class="label">SKIP</div>
+    </div>
+  </div>
+
+  {% set total = report.summary.values()|sum %}
+  {% if total > 0 %}
+  <div class="bar">
+    {% for sev, color in [('FAIL', '#dc3545'), ('WARN', '#ffc107'), ('PASS', '#28a745'), ('INFO', '#17a2b8'), ('SKIP', '#6c757d')] %}
+    {% set count = report.summary.get(sev, 0) %}
+    {% set pct = (count / total * 100)|round(1) %}
+    {% if pct > 0 %}
+    <div class="bar-segment" style="width:{{ pct }}%;background:{{ color }};" title="{{ sev }}: {{ count }}">{% if pct > 5 %}{{ count }}{% endif %}</div>
+    {% endif %}
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% for cat in categories.keys()|sort %}
+  <div class="category">
+    <h2 class="cat-header" onclick="toggleSection(this)">[+] {{ cat|upper }}</h2>
+    <div class="cat-body">
+      {% for r in categories[cat] %}
+      <div class="finding">
+        <span class="badge badge-{{ r.severity }}">{{ r.severity }}</span>
+        <strong>{{ r.check_id }}</strong> &mdash; {{ r.title }}
+        <p class="detail">{{ r.detail }}</p>
+        {% if r.remediation and r.severity in ['FAIL', 'WARN'] %}
+        <div class="remediation"><strong>Remediation:</strong> <code>{{ r.remediation }}</code></div>
+        {% endif %}
+        {% if r.mitre_techniques %}
+        <p class="mitre">MITRE: {{ r.mitre_techniques|join(', ') }}</p>
+        {% endif %}
+        {% if r.evidence %}
+        <details>
+          <summary>Evidence</summary>
+          <pre>{{ r.evidence|tojson(indent=2) }}</pre>
+        </details>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+
+  {% if coverage_results %}
+  <div class="coverage-matrix">
+    <h2>MITRE ATT&CK Coverage Matrix</h2>
+    <div class="matrix-grid">
+      {% for r in coverage_results %}
+      {% set color = {'PASS': '#28a745', 'WARN': '#ffc107', 'FAIL': '#dc3545', 'INFO': '#17a2b8'}.get(r.severity, '#6c757d') %}
+      <div class="matrix-cell" style="border-left: 4px solid {{ color }};">
+        {{ r.title|replace('MITRE Coverage: ', '') }}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="header" style="margin-top:20px;">
+    <h2>Next Steps</h2>
+    <p>
+      1. Address FAIL findings first — these represent critical security logging gaps.<br>
+      2. Review WARN findings for improvements to strengthen telemetry.<br>
+      3. Re-run this tool after making changes to validate fixes.<br>
+      4. Share this report with your security operations team.
+    </p>
+  </div>
+</div>
+</body>
+</html>
