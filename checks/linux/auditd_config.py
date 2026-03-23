@@ -11,21 +11,12 @@ from core.platform_utils import (
     get_package_manager, parse_config_file, get_file_mtime,
     check_process_running, get_linux_distro,
 )
+from checks.linux.utils import read_all_rules
 
 
 def _read_all_rules():
     """Read all audit rule lines from rules.d and audit.rules."""
-    lines = []
-    rule_files = glob.glob("/etc/audit/rules.d/*.rules")
-    if file_exists("/etc/audit/audit.rules"):
-        rule_files.append("/etc/audit/audit.rules")
-    for rf in rule_files:
-        content = read_file_safe(rf)
-        if content:
-            for line in content.splitlines():
-                stripped = line.strip()
-                if stripped and not stripped.startswith("#"):
-                    lines.append(stripped)
+    lines, _ = read_all_rules()
     return lines
 
 

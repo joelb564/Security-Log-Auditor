@@ -9,27 +9,12 @@ from core.platform_utils import (
     get_package_manager, parse_config_file, get_file_mtime,
     check_process_running, get_linux_distro,
 )
+from checks.linux.utils import read_all_rules
 
 
 def _read_all_rules():
     """Read and combine all audit rule lines from rules.d and audit.rules."""
-    lines = []
-    sources = {}
-    rule_files = sorted(glob.glob("/etc/audit/rules.d/*.rules"))
-    if file_exists("/etc/audit/audit.rules"):
-        rule_files.append("/etc/audit/audit.rules")
-    for rf in rule_files:
-        content = read_file_safe(rf)
-        if content:
-            file_lines = []
-            for line in content.splitlines():
-                stripped = line.strip()
-                if stripped and not stripped.startswith("#"):
-                    file_lines.append(stripped)
-                    lines.append(stripped)
-            if file_lines:
-                sources[rf] = file_lines
-    return lines, sources
+    return read_all_rules()
 
 
 def _rules_contain(lines, pattern):
