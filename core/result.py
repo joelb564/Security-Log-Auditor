@@ -26,6 +26,7 @@ class Report:
     results: List[CheckResult] = field(default_factory=list)
     summary: Dict[str, int] = field(default_factory=dict)
     health_score: int = 0
+    skipped_count: int = 0
 
     def calculate_summary(self):
         self.summary = {"PASS": 0, "WARN": 0, "FAIL": 0, "INFO": 0, "SKIP": 0}
@@ -45,6 +46,7 @@ class Report:
         }
         total_weight = 0.0
         earned = 0.0
+        self.skipped_count = sum(1 for r in self.results if r.severity == "SKIP")
         for r in self.results:
             if r.severity in ("INFO", "SKIP"):
                 continue

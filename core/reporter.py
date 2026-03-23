@@ -83,6 +83,9 @@ def print_terminal_report(report, use_color=True, quiet=False):
     else:
         score_color = c.RED
     print("  {}{}Health Score: {}/100{}".format(c.BOLD, score_color, score, c.RESET))
+    if report.skipped_count > 0:
+        print("  {}⚠  Score excludes {} skipped checks — re-run with sudo for accurate results.{}".format(
+            c.YELLOW, report.skipped_count, c.RESET))
     print("")
     print("  {}FAIL {}{}{}   {}WARN {}{}{}   {}PASS {}{}{}   {}INFO {}{}{}   {}SKIP {}{}{}".format(
         c.RED, c.BOLD, report.summary.get("FAIL", 0), c.RESET,
@@ -539,6 +542,11 @@ def _generate_html_simple(report):
         score_color = "var(--warn)"
     else:
         score_color = "var(--fail)"
+
+    if report.skipped_count > 0:
+        skipped_warning_html = '<div style="background:rgba(245,158,11,0.15);border:1px solid var(--warn);border-radius:8px;padding:10px 16px;margin:12px 0;color:var(--warn);font-size:0.95em;">&#9888;  Score excludes {n} skipped checks &mdash; re-run with sudo for accurate results.</div>'.format(n=report.skipped_count)
+    else:
+        skipped_warning_html = ""
 
     # Build the full HTML document
     html = """<!DOCTYPE html>
@@ -1139,6 +1147,8 @@ def _generate_html_simple(report):
 
   <div class="bar">{summary_bar}</div>
 
+  {skipped_warning_html}
+
   {top_issues_html}
 
   <div class="filter-bar">
@@ -1239,6 +1249,7 @@ function filterBySeverity(severity, btn) {{
         info=report.summary.get("INFO", 0),
         skip=report.summary.get("SKIP", 0),
         summary_bar=summary_bar,
+        skipped_warning_html=skipped_warning_html,
         sidebar_nav=sidebar_html,
         top_issues_html=top_issues_html,
         findings_html=findings_html,
