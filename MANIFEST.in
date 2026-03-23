@@ -1,0 +1,6 @@
+include README.md
+include LICENSE
+recursive-include templates *.html
+recursive-include checks *.py
+recursive-include common *.py
+recursive-include core *.py

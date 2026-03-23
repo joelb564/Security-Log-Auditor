@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "security-log-auditor"
+version = "1.0.0"
+description = "Cross-platform security logging audit tool — 100+ checks for auditd, Sysmon, log shippers, EDR, and MITRE ATT&CK coverage"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.8"
+dependencies = []
+
+[project.scripts]
+security-log-audit = "log_auditor:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["checks*", "common*", "core*"]
